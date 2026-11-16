@@ -1,0 +1,22 @@
+# Compiled output
+*.o
+*.obj
+*.exe
+*.out
+*.app
+game2048_app
+luhn_app
+build/
+
+# IDE / OS caches
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Runtime save slot (a curated sample_save.txt is committed instead)
+savegame.txt
+
+# Private Blackboard-only info -- never upload student IDs
+group_info.txt
