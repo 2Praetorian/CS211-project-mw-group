@@ -2,7 +2,10 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
+#include <sstream>
 #include <random>
+#include <climits>
 
 using namespace std;
 
@@ -273,8 +276,8 @@ void print_help()
 	     << "  d  move down" << endl
 	     << "  l  move left" << endl
 	     << "  r  move right" << endl
-	     << "  s  save (coming in the next update)" << endl
-	     << "  o  open/load (coming in the next update)" << endl
+	     << "  s  save the game to savegame.txt (replaces the last save)" << endl
+	     << "  o  open (load) the game from savegame.txt" << endl
 	     << "  n  new game (asks first)" << endl
 	     << "  h  show this help" << endl
 	     << "  e  exit" << endl
@@ -282,4 +285,149 @@ void print_help()
 	     << "A new 2 appears only after a move that changes the board." << endl
 	     << "Reach 2048 to win (you can keep playing). The game is over when" << endl
 	     << "the board is full and no two neighbors match." << endl;
+}
+
+// ---------- save and load ----------
+
+bool save_game(const string &filename, const int board[][SIZE], int score, int moves, string &error)
+{
+	ofstream out(filename);
+	if (!out)
+	{
+		error = "Could not open " + filename + " for writing.";
+		return false;
+	}
+
+	out << SAVE_MARKER << "\n";
+	out << score << " " << moves << "\n";
+	for (int r = 0; r < SIZE; r++)
+	{
+		for (int c = 0; c < SIZE; c++)
+		{
+			out << board[r][c];
+			if (c < SIZE - 1)
+				out << " ";
+		}
+		out << "\n";
+	}
+
+	out.close();
+	if (out.fail())
+	{
+		error = "Something went wrong while writing " + filename + ".";
+		return false;
+	}
+	return true;
+}
+
+// Turns a token into an int. Fails on anything that is not a whole
+// number or is outside the range of int.
+bool parse_int(const string &token, int &value)
+{
+	if (token.empty())
+		return false;
+
+	size_t start = 0;
+	if (token[0] == '-' || token[0] == '+')
+		start = 1;
+	if (start == token.size())
+		return false;
+
+	long long total = 0;
+	for (size_t i = start; i < token.size(); i++)
+	{
+		if (token[i] < '0' || token[i] > '9')
+			return false;
+		total = total * 10 + (token[i] - '0');
+		if (total > (long long)INT_MAX + 1)
+			return false;
+	}
+
+	if (token[0] == '-')
+		total = -total;
+	if (total < INT_MIN || total > INT_MAX)
+		return false;
+
+	value = (int)total;
+	return true;
+}
+
+bool is_valid_tile(int value)
+{
+	if (value == 0)
+		return true;
+	if (value < 2)
+		return false;
+	// power of two: only one bit set
+	return (value & (value - 1)) == 0;
+}
+
+// Reads everything into temporary variables first. The real board,
+// score, and moves are only replaced if the whole file is valid.
+bool load_game(const string &filename, int board[][SIZE], int &score, int &moves, string &error)
+{
+	ifstream in(filename);
+	if (!in)
+	{
+		error = "Could not open " + filename + ". Has a game been saved yet?";
+		return false;
+	}
+
+	string token;
+	if (!(in >> token) || token != SAVE_MARKER)
+	{
+		error = "Not a valid save file (missing " + SAVE_MARKER + " on the first line).";
+		return false;
+	}
+
+	int tempScore, tempMoves;
+	if (!(in >> token) || !parse_int(token, tempScore) || tempScore < 0)
+	{
+		error = "Score is missing, not a whole number, or negative.";
+		return false;
+	}
+	if (!(in >> token) || !parse_int(token, tempMoves) || tempMoves < 0)
+	{
+		error = "Move count is missing, not a whole number, or negative.";
+		return false;
+	}
+
+	int temp[SIZE][SIZE];
+	for (int r = 0; r < SIZE; r++)
+	{
+		for (int c = 0; c < SIZE; c++)
+		{
+			if (!(in >> token))
+			{
+				error = "Save file is incomplete (fewer than 25 tiles).";
+				return false;
+			}
+			int value;
+			if (!parse_int(token, value))
+			{
+				error = "Tile \"" + token + "\" is not a whole number in range.";
+				return false;
+			}
+			if (!is_valid_tile(value))
+			{
+				error = "Tile " + token + " is not 0 or a power of two (2, 4, 8, ...).";
+				return false;
+			}
+			temp[r][c] = value;
+		}
+	}
+
+	if (in >> token)
+	{
+		error = "Save file has extra data after the 25 tiles.";
+		return false;
+	}
+
+	// Everything checked out, so now copy into the real game
+	for (int r = 0; r < SIZE; r++)
+		for (int c = 0; c < SIZE; c++)
+			board[r][c] = temp[r][c];
+	score = tempScore;
+	moves = tempMoves;
+	return true;
 }

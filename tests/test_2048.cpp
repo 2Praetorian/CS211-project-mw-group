@@ -1,7 +1,8 @@
-// Automated checks for the 2048 helper functions (handout Part A movement tests).
+// Automated checks for the 2048 helper functions (handout Part A tests).
 // Build from the top project folder:
 //   g++ -std=c++17 -Wall -Wextra -pedantic tests/test_2048.cpp game2048/2048_helper.cpp -o test_2048
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "../game2048/2048_helper.h"
 using namespace std;
@@ -65,6 +66,12 @@ void left_row_test(int start[SIZE], int expected[SIZE], int expectedPoints, bool
 		name += to_string(b[0][c]) + " ";
 	name += "(+" + to_string(points) + ")";
 	check(name, ok);
+}
+
+void write_file(const string &name, const string &text)
+{
+	ofstream out(name);
+	out << text;
 }
 
 int main()
@@ -204,6 +211,73 @@ int main()
 		int score = 99, moves = 99;
 		new_game(b, score, moves);
 		check("new_game: two 2s, score 0, moves 0", count_tiles(b) == 2 && highest_tile(b) == 2 && score == 0 && moves == 0);
+	}
+
+	// ---- 7: save, change, load -> exact restore ----
+	{
+		const string f = "test_save_tmp.txt";
+		int b[SIZE][SIZE] = {
+			{4, 4, 0, 0, 0},
+			{0, 2048, 0, 0, 0},
+			{2, 0, 0, 0, 8},
+			{0, 0, 16, 0, 0},
+			{0, 0, 0, 0, 2}};
+		int saved[SIZE][SIZE];
+		copy_board(b, saved);
+		string err;
+		bool okSave = save_game(f, b, 8, 3, err);
+		int score = 8, moves = 3;
+		int p = 0;
+		move_left(b, p);   // change the game
+		score = 500;
+		moves = 77;
+		bool okLoad = load_game(f, b, score, moves, err);
+		check("save, change, load: exact board and counters restored",
+		      okSave && okLoad && same_board(b, saved) && score == 8 && moves == 3);
+		remove(f.c_str());
+	}
+
+	// ---- 8: missing / incomplete / malformed saves keep the game ----
+	{
+		struct BadCase { string name; string text; bool createFile; };
+		BadCase cases[] = {
+			{"missing file", "", false},
+			{"wrong marker", "CS211_2048_V2\n0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n", true},
+			{"incomplete (24 tiles)", "CS211_2048_V1\n0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0\n", true},
+			{"invalid tile 3", "CS211_2048_V1\n0 0\n3 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n", true},
+			{"invalid tile 1", "CS211_2048_V1\n0 0\n1 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n", true},
+			{"negative score", "CS211_2048_V1\n-4 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n", true},
+			{"non-number tile", "CS211_2048_V1\n0 0\n2x 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n", true},
+			{"out of range number", "CS211_2048_V1\n99999999999 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n", true},
+			{"extra data", "CS211_2048_V1\n0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\n0 0 0 0 0\nextra\n", true},
+			{"empty file", "", true}
+		};
+		for (const BadCase &bc : cases)
+		{
+			const string f = "test_bad_tmp.txt";
+			remove(f.c_str());
+			if (bc.createFile)
+				write_file(f, bc.text);
+
+			int b[SIZE][SIZE] = {{2, 4}, {8}};
+			int before[SIZE][SIZE];
+			copy_board(b, before);
+			int score = 12, moves = 5;
+			string err;
+			bool ok = load_game(f, b, score, moves, err);
+			check("bad save (" + bc.name + ") rejected, game unchanged -> \"" + err + "\"",
+			      !ok && same_board(b, before) && score == 12 && moves == 5);
+			remove(f.c_str());
+		}
+	}
+
+	// ---- the provided sample save loads ----
+	{
+		int b[SIZE][SIZE] = {};
+		int score = 0, moves = 0;
+		string err;
+		bool ok = load_game("game2048/sample_save.txt", b, score, moves, err);
+		check("game2048/sample_save.txt loads (score 8, moves 3)", ok && score == 8 && moves == 3 && b[0][0] == 4 && b[2][0] == 2);
 	}
 
 	cout << endl << passed << " passed, " << failed << " failed." << endl;
