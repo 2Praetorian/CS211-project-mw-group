@@ -5,6 +5,8 @@ All automated tests are in `tests/`. Build and run them from the top project fol
 ```
 g++ -std=c++17 -Wall -Wextra -pedantic tests/test_2048.cpp game2048/2048_helper.cpp -o test_2048
 ./test_2048
+g++ -std=c++17 -Wall -Wextra -pedantic tests/test_luhn.cpp luhn/luhn.cpp -o test_luhn
+./test_luhn
 ```
 
 Movement results below are the board **right after the move and before the random 2 is added**. The random 2 is added separately in `main` only when the move changed the board.
@@ -101,3 +103,18 @@ Movement results below are the board **right after the move and before the rando
 | s | "Game saved", game unchanged | Same | Pass |
 | e | "Goodbye!", program ends, no tile added | Same | Pass |
 | End of input (Ctrl+Z then Enter on Windows) | "End of input. Goodbye!", program ends cleanly | Same | Pass |
+
+## Part B - Luhn
+
+| Input or action | Expected | Actual | Result |
+|---|---|---|---|
+| 4532015112830366 | Correct format, sum 50, passes | PASSES, sum 50 | Pass |
+| 4532015112830367 | Correct format, sum 51, fails | FAILS, sum 51 | Pass |
+| 0000000000000018 | Correct format, leading zeros kept, passes | PASSES, sum 10 | Pass |
+| 453201511283036 | Reject: 15 digits | Invalid format message | Pass |
+| 45320151128303666 | Reject: 17 digits | Invalid format message | Pass |
+| 453201511283036X | Reject: non-digit | Invalid format message | Pass |
+| 4532 015112830366 | Reject: internal space | Invalid format message | Pass |
+| Several checks, then q | Each result correct, "Goodbye!" | Same | Pass |
+| End of input | "End of input. Goodbye!", clean exit | Same | Pass |
+| checkLuhn on a copy | Original string not changed | Not changed | Pass |
