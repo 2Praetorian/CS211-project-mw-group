@@ -3,9 +3,58 @@
 #include <iomanip>
 using namespace std;
 
-void move_left(int board[][5], int numrows = 5)
+// Slides and merges every row to the left.
+// Returns true if anything on the board moved or merged.
+// points gets the score earned by this move (sum of the new merged tiles).
+bool move_left(int board[][5], int &points)
 {
-	//CODE HERE
+	bool changed = false;
+	points = 0;
+
+	for (int row = 0; row < 5; row++)
+	{
+		// Step 1: copy the nonzero tiles in order (this closes the gaps)
+		int tiles[5];
+		int count = 0;
+		for (int col = 0; col < 5; col++)
+		{
+			if (board[row][col] != 0)
+			{
+				tiles[count] = board[row][col];
+				count++;
+			}
+		}
+
+		// Step 2: build the new row, merging each equal pair once
+		int newRow[5] = {0, 0, 0, 0, 0};
+		int pos = 0;
+		int i = 0;
+		while (i < count)
+		{
+			if (i + 1 < count && tiles[i] == tiles[i + 1])
+			{
+				newRow[pos] = tiles[i] * 2;
+				points += newRow[pos];
+				i += 2;   // both tiles are used up, so neither can merge again
+			}
+			else
+			{
+				newRow[pos] = tiles[i];
+				i++;
+			}
+			pos++;
+		}
+
+		// Step 3: copy back and check if anything changed
+		for (int col = 0; col < 5; col++)
+		{
+			if (board[row][col] != newRow[col])
+				changed = true;
+			board[row][col] = newRow[col];
+		}
+	}
+
+	return changed;
 }
 
 void move_right(int board[][5], int numrows = 5)
