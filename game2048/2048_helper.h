@@ -1,131 +1,29 @@
-#include <iostream>
-#include <random>
-#include <iomanip>
-using namespace std;
+#ifndef GAME_2048_HELPER_H
+#define GAME_2048_HELPER_H
 
-// Slides and merges every row to the left.
-// Returns true if anything on the board moved or merged.
-// points gets the score earned by this move (sum of the new merged tiles).
-bool move_left(int board[][5], int &points)
-{
-	bool changed = false;
-	points = 0;
+const int SIZE = 5;
 
-	for (int row = 0; row < 5; row++)
-	{
-		// Step 1: copy the nonzero tiles in order (this closes the gaps)
-		int tiles[5];
-		int count = 0;
-		for (int col = 0; col < 5; col++)
-		{
-			if (board[row][col] != 0)
-			{
-				tiles[count] = board[row][col];
-				count++;
-			}
-		}
+// Board setup
+void clear_board(int board[][SIZE]);
+void new_game(int board[][SIZE], int &score, int &moves);
+bool insert_random(int board[][SIZE]);
 
-		// Step 2: build the new row, merging each equal pair once
-		int newRow[5] = {0, 0, 0, 0, 0};
-		int pos = 0;
-		int i = 0;
-		while (i < count)
-		{
-			if (i + 1 < count && tiles[i] == tiles[i + 1])
-			{
-				newRow[pos] = tiles[i] * 2;
-				points += newRow[pos];
-				i += 2;   // both tiles are used up, so neither can merge again
-			}
-			else
-			{
-				newRow[pos] = tiles[i];
-				i++;
-			}
-			pos++;
-		}
+// Movement: each returns true if the board changed.
+// points gets the score earned by the move (sum of the new merged tiles).
+// No random tile is added here, so moves can be tested on their own.
+bool move_left(int board[][SIZE], int &points);
+bool move_right(int board[][SIZE], int &points);
+bool move_up(int board[][SIZE], int &points);
+bool move_down(int board[][SIZE], int &points);
 
-		// Step 3: copy back and check if anything changed
-		for (int col = 0; col < 5; col++)
-		{
-			if (board[row][col] != newRow[col])
-				changed = true;
-			board[row][col] = newRow[col];
-		}
-	}
+// Board checks
+int highest_tile(const int board[][SIZE]);
+bool has_empty_cell(const int board[][SIZE]);
+bool can_move(const int board[][SIZE]);
 
-	return changed;
-}
+// Display
+void print_board(const int board[][SIZE]);
+void print_status(const int board[][SIZE], int score, int moves);
+void print_help();
 
-void move_right(int board[][5], int numrows = 5)
-{
-	//CODE HERE
-}
-
-void move_up(int board[][5], int numrows = 5)
-{
-	//CODE HERE
-}
-
-void move_down(int board[][5], int numrows = 5)
-{
-	//CODE HERE
-}
-
-
-void print_board(int board[][5], int numrows = 5)
-{
-	cout << endl << "\t-----------------------------------------" << endl;
-
-	for (int r = 0; r < numrows; r++)
-	{
-		for (int c = 0; c < 5; c++)
-		{
-			if(board[r][c] > 0)
-				cout << "\t|" << right << setw(6) << setfill(' ') << board[r][c];
-			else
-				cout << "\t|" << right << setw(6) << setfill(' ') << " ";
-
-			//cout << board[r][c] << "\t|\t";
-		}
-		cout << "\t|" << endl;
-		cout << "\t-----------------------------------------" << endl;
-	}
-
-	cout << "\t" << endl << endl;
-}
-
-
-void insert_random(int board[][5], int numrows = 5)
-{
-	int r, c;
-	//count empty
-	int empty_count = 0;
-	for (int r = 0; r < numrows; r++)
-	{
-		for (int c = 0; c < 5; c++)
-		{
-			if (board[r][c] == 0)
-				empty_count++;
-		}
-	}
-
-	if (empty_count > 0)
-	{
-		while (true)
-		{
-			//generate random location r, c
-			r = rand() % numrows;
-			c = rand() % numrows;
-			//check if empty
-			if (board[r][c] == 0)
-			{
-				//add number randomly {2,4}
-				board[r][c] = 2 * (1 + (rand() % 2));
-				break;
-			}
-		}
-
-	}
-}
-
+#endif
