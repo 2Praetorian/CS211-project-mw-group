@@ -118,3 +118,9 @@ Movement results below are the board **right after the move and before the rando
 | Several checks, then q | Each result correct, "Goodbye!" | Same | Pass |
 | End of input | "End of input. Goodbye!", clean exit | Same | Pass |
 | checkLuhn on a copy | Original string not changed | Not changed | Pass |
+
+## Clean-extraction build test
+
+| Step | Expected | Actual | Result |
+|---|---|---|---|
+| Unzip the submission ZIP into a new folder and build both programs with the README commands | Both build with no errors or warnings and run | Same | Pass |
