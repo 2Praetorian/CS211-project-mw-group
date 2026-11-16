@@ -30,7 +30,10 @@ int main()
 		else if (choice == 'd')
 			move_down(board, size);
 		else if (choice == 'l')
-			move_left(board, size);
+		{
+			int points = 0;
+			move_left(board, points);
+		}
 		else if (choice == 'r')
 			move_right(board, size);
 
