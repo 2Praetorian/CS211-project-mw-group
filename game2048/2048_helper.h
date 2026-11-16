@@ -1,7 +1,11 @@
 #ifndef GAME_2048_HELPER_H
 #define GAME_2048_HELPER_H
 
+#include <string>
+
 const int SIZE = 5;
+const std::string SAVE_FILE = "savegame.txt";
+const std::string SAVE_MARKER = "CS211_2048_V1";
 
 // Board setup
 void clear_board(int board[][SIZE]);
@@ -25,5 +29,9 @@ bool can_move(const int board[][SIZE]);
 void print_board(const int board[][SIZE]);
 void print_status(const int board[][SIZE], int score, int moves);
 void print_help();
+
+// Save and load (one slot: savegame.txt)
+bool save_game(const std::string &filename, const int board[][SIZE], int score, int moves, std::string &error);
+bool load_game(const std::string &filename, int board[][SIZE], int &score, int &moves, std::string &error);
 
 #endif

@@ -67,6 +67,28 @@ Movement results below are the board **right after the move and before the rando
 | insert_random on a board with one 2 | Exactly one new tile, and it is a 2 | Same | Pass |
 | new_game | Two 2s in different cells, Score 0, Moves 0 | Same | Pass |
 
+### 7. Save, change, load
+
+| Steps | Expected | Actual | Result |
+|---|---|---|---|
+| Save a board (score 8, moves 3), move left, set score 500/moves 77, load | Exact board restored, score 8, moves 3, no tile inserted, move not counted | Same | Pass |
+| Load `game2048/sample_save.txt` | Loads, score 8, moves 3 | Same | Pass |
+
+### 8. Bad save files (active game must stay the same)
+
+| Save file problem | Expected message | Game unchanged? | Result |
+|---|---|---|---|
+| File missing | A load-failed message (on Windows it says "Not a valid save file") | Yes | Pass |
+| Wrong marker (CS211_2048_V2) | Not a valid save file | Yes | Pass |
+| Empty file | Not a valid save file | Yes | Pass |
+| Only 24 tiles | Save file is incomplete | Yes | Pass |
+| Tile 3 | Not 0 or a power of two | Yes | Pass |
+| Tile 1 | Not 0 or a power of two | Yes | Pass |
+| Tile "2x" | Not a whole number | Yes | Pass |
+| Negative score | Score is ... negative | Yes | Pass |
+| Score 99999999999 (too big for int) | Score is ... not a whole number | Yes | Pass |
+| Extra text after the 25 tiles | Save file has extra data | Yes | Pass |
+
 ### 9. Controls (played by hand)
 
 | Input | Expected | Actual | Result |
@@ -76,6 +98,6 @@ Movement results below are the board **right after the move and before the rando
 | lr (more than one letter) | "Invalid command", nothing changes | Same | Pass |
 | n then no | "New game cancelled", game unchanged | Same | Pass |
 | n then y | New board with two 2s, Score 0, Moves 0 | Same | Pass |
-| s / o | "Save and load are not added yet", game unchanged | Same | Pass |
+| s | "Game saved", game unchanged | Same | Pass |
 | e | "Goodbye!", program ends, no tile added | Same | Pass |
 | End of input (Ctrl+Z then Enter on Windows) | "End of input. Goodbye!", program ends cleanly | Same | Pass |

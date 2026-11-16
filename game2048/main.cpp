@@ -90,9 +90,28 @@ int main()
 				wonAnnounced = true;
 			}
 		}
-		else if (cmd == 's' || cmd == 'o')
+		else if (cmd == 's')
 		{
-			cout << "Save and load are not added yet. Your game was not changed." << endl;
+			string error;
+			if (save_game(SAVE_FILE, board, score, moves, error))
+				cout << "Game saved to " << SAVE_FILE << " (the old save was replaced)." << endl;
+			else
+				cout << "Save failed: " << error << endl;
+		}
+		else if (cmd == 'o')
+		{
+			string error;
+			if (load_game(SAVE_FILE, board, score, moves, error))
+			{
+				cout << "Game loaded from " << SAVE_FILE << "." << endl;
+				wonAnnounced = (highest_tile(board) >= 2048);
+				print_status(board, score, moves);
+			}
+			else
+			{
+				cout << "Load failed: " << error << endl;
+				cout << "Your current game was not changed." << endl;
+			}
 		}
 		else if (cmd == 'n')
 		{
